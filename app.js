@@ -46,6 +46,40 @@ app.get('/', function(req, res) {
     });
 });
 
+app.get('/', function(req, res) {
+    Note.find({author: req.session.user.username})
+        .exec(function(err, arts) {
+            if(err) {
+                console.log(err);
+                return res.redirect('/');
+            }
+            res.render('index', {
+                title: '笔记列表',
+                user: req.session.user,
+                arts: arts,
+                moment: moment
+            });
+        })
+});
+
+app.get('/detail/:_id', function(req, res) {
+    Note.findOne({_id: req.params._id})
+        .exec(function(err, art) {
+            if(err) {
+                console.log(err);
+                return res.redirect('/');
+            }
+            if(art) {
+                res.render('detail', {
+                    title: '笔记详情',
+                    user: req.session.user,
+                    art: art,
+                    moment: moment
+                });
+            }
+        });
+});
+
 app.get('/reg', function (req, res) {
     res.render('register', {
         title: 'Register',
