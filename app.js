@@ -5,6 +5,10 @@ var express = require('express');
 var path = require('path');
 var bodyParser = require('body-parser');
 var crypto = require('crypto');
+var mongoose = require('mongoose');
+
+mongoose.connect('mongodb://localhost:27017/notes');
+mongoose.connection.on('error', console.error.bind(console, 'Connection fails'));
 
 var app = express();
 
