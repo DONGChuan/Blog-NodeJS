@@ -1,0 +1,13 @@
+<div class="clearfix page-nav">
+    <% if(user) { %>
+    <div class="pull-left nav-username">Hello! <a href="/"><%= user.username %></a></div>
+    <div class="pull-left"><a href="/post">发表</a></div>
+    <div class="pull-right nav-quit"><a href="/quit">退出</a></div>
+    <% } else { %>
+    <% if(page == 'login') { %>
+    <div class="pull-right nav-register"><a href="/reg">注册</a></div>
+    <% } else { %>
+    <div class="pull-right nav-login"><a href="/login">登录</a></div>
+    <% } %>
+    <% } %>
+</div>
