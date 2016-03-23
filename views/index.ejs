@@ -4,28 +4,29 @@
         <%- include header %>
     </head>
     <body>
-        <%- include nav %>
-        <div class="text-center page-title"><%= title %></div>
-        <div class="container">
+        <%- include navbar %>
+        <div class="container content">
+            <div class="text-center page-title"><%= title %></div>
             <div class="row">
                 <% arts.forEach(function(art) { %>
-                <div class="col-xs-8 col-xs-offset-2">
-                    <div class="article-box">
-                        <a href="/detail/<%= art._id %>">
-                            <h3 class="text-center"><%= art.title %></h3>
-                        </a>
-                        <p class="text-center">
-                            <span class="label label-info"><%= art.tag %></span> |
-                                <span class="create-time">
-                                    <span class="text-bold">时间:</span>
-                                    <%= art.createTime %>
-                                </span>
-                        </p>
-                        <p><%= art.content %></p>
-                    </div>
-                </div>
+                	<div class="col-xs-8 col-xs-offset-2">
+                	    <div class="article-box">
+                    		<a href="/detail/<%= art._id %>">
+                    			<h3 class="text-center"><%= art.title %></h3>
+                    		</a>
+                    		<p class="text-center">
+                    		    <span class="label label-info"><%= art.tag %></span> | 
+                    			<span class="create-time">
+                    				<span class="text-bold">时间:</span>
+                    				<%= moment(art.createTime).locale('zh-cn').format('LL HH:mm:ss') %>
+                    			</span>
+                    		</p>
+                    		<p><%= art.content %></p>
+                		</div>
+                	</div>
                 <% }); %>
             </div>
         </div>
+        <%- include footer %>
     </body>
 </html>

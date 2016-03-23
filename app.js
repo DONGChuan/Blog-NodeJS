@@ -1,40 +1,49 @@
-var express = require('express');
-var path = require('path');
-var bodyParser = require('body-parser');
-var mongoose = require('mongoose');
-var crypto = require('crypto');
-var session = require('express-session');
-var MongoStore = require('connect-mongo')(session);
-var moment = require('moment');
+'use strict';
 
+// Import modules
+var express    = require('express');
+var app        = express();
+var path       = require('path');
+var bodyParser = require('body-parser');
+var mongoose   = require('mongoose');
+var crypto     = require('crypto');
+var session    = require('express-session');
+var MongoStore = require('connect-mongo')(session);
+var moment     = require('moment');
+
+// Import models
 var models = require('./models/models');
 var User = models.User;
 var Article = models.Article;
 
 var checkLogin = require('./checkLogin.js');
 
-var app = express();
-
+// Connect to db
 mongoose.connect('mongodb://localhost:27017/notes');
-mongoose.connection.on('error', console.error.bind(console, '连接数据库失败'));
+var mongoDB = mongoose.connection;
+mongoDB.on('error', console.error.bind(console, 'Fail to connect db'));
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
+// Setup view engine setup
+app.set('views', path.join(__dirname, './views'));
 app.set('view engine', 'ejs');
 
+// Load static files
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Parser body
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Session
 app.use(session({
-    key: 'session',
+    c: 'session',
     secret: 'Keboard cat',
     cookie: {maxAge: 1000 * 60 * 60 * 24},
     store: new MongoStore({
         db: 'notes',
-        mongooseConnection: mongoose.connection
+        mongooseConnection: mongoDB
     }),
-    resave: false,
+    resave: true,
     saveUninitialized: true
 }));
 
