@@ -1,17 +1,23 @@
-//已经登录
+'use strict';
+
+/**
+ * If already login, return back to previous page
+ */
 function login(req, res, next) {
 	if(req.session.user) {
-        console.log('您已经登录！');
-        return res.redirect('back');//返回之前的页面
+        console.log('Already login！');
+        return res.redirect('back');
 	}
 	next();
 }
 
-//未登录
+/**
+ * If client not login yet, redirect to login page
+ */
 function noLogin(req, res, next) {
 	if(!req.session.user) {
-		console.log('抱歉，您还没有登录！');
-		return res.redirect('/login');//返回登录页面
+		console.log('Must login firstly!');
+		return res.redirect('/login');
 	}
 	next();
 }

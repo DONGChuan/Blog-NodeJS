@@ -37,7 +37,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Session
 app.use(session({
     c: 'session',
-    secret: 'Keboard cat',
+    secret: 'doubi',
     cookie: {maxAge: 1000 * 60 * 60 * 24},
     store: new MongoStore({
         db: 'notes',
@@ -64,126 +64,136 @@ app.get('/', function(req, res) {
         })
 });
 
-app.get('/reg', function(req, res) {
-    res.render('register', {
-        title: '注册',
-        user: req.session.user,
-        page: 'reg'
-    });
-});
+app.route('/reg')
+    .get(function(req, res) {
+        res.render('register', {
+            title: 'Register',
+            user: req.session.user,
+            page: 'reg'
+        })
+    })
+    .post('/reg', function(req, res) {
+        var username = req.body.username;
+        var password = req.body.password;
+        var passwordRepeat = req.body.passwordRepeat;
 
-app.post('/reg', function(req, res) {
-    var username = req.body.username,
-		password = req.body.password,
-		passwordRepeat = req.body.passwordRepeat;
+        if(password != passwordRepeat) {
+            console.log('You must enter the same passwords！');
+            return res.redirect('/reg');
+        }
 
-	//检查两次输入的密码是否一致
-	if(password != passwordRepeat) {
-		console.log('两次输入的密码不一致！');
-		return res.redirect('/reg');
-	}
-
-	//检查用户名是否已经存在
-	User.findOne({username:username}, function(err, user) {
-		if(err) {
-			console.log(err);
-			return res.redirect('/reg');
-		}
-
-		if(user) {
-			console.log('用户名已经存在');
-			return res.redirect('/reg');
-		}
-
-		//对密码进行md5加密
-		var md5 = crypto.createHash('md5'),
-			md5password = md5.update(password).digest('hex');
-
-		var newUser = new User({
-			username: username,
-			password: md5password
-		});
-
-		newUser.save(function(err, doc) {
-			if(err) {
+        // Check whether user already exits
+        User.findOne({username:username}, function(err, user) {
+            if(err) {
                 console.log(err);
-				return res.redirect('/reg');
-			}
-			console.log('注册成功！');
-			newUser.password = null;
-			delete newUser.password;
-			req.session.user = newUser;
-			return res.redirect('/');
-		});
-	});
-});
+                return res.redirect('/reg');
+            }
 
-app.get('/login', function(req, res) {
-    res.render('login', {
-       title: '登录',
-       user: req.session.user,
-       page: 'login'
+            if(user) {
+                console.log('Username already exits');
+                return res.redirect('/reg');
+            }
+
+            // Md5 for password
+            var md5 = crypto.createHash('md5'),
+                md5password = md5.update(password).digest('hex');
+
+            var newUser = new User({
+                username: username,
+                password: md5password
+            });
+
+            newUser.save(function(err, doc) {
+                if(err) {
+                    console.log(err);
+                    return res.redirect('/reg');
+                }
+                console.log('Register successfully！');
+
+                newUser.password = null;
+                delete newUser.password;
+                req.session.user = newUser;
+
+                return res.redirect('/');
+            });
+        });
     });
-});
 
-app.post('/login', function(req, res) {
-    var username = req.body.username,
-		password = req.body.password;
+app.route('/login')
+    .get(function(req, res) {
+        res.render('login', {
+           title: 'Login',
+           user: req.session.user,
+           page: 'login'
+        });
+    })
+    .post(function(req, res) {
+        var username = req.body.username,
+            password = req.body.password;
 
-	User.findOne({username:username}, function(err, user) {
-		if(err) {
-			console.log(err);
-			return next(err);
-		}
-		if(!user) {
-			console.log('用户不存在！');
-			return res.redirect('/login');
-		}
-		//对密码进行md5加密
-		var md5 = crypto.createHash('md5'),
-			md5password = md5.update(password).digest('hex');
-		if(user.password !== md5password) {
-			console.log('密码错误！');
-			return res.redirect('/login');	
-		}
-		console.log('登录成功！');
-		user.password = null;
-		delete user.password;
-		req.session.user = user;
-		return res.redirect('/');
-	});
-});
+        User.findOne({username:username}, function(err, user) {
+            if(err) {
+                console.log(err);
+                return next(err);
+            }
+            if(!user) {
+                console.log('User not exists！');
+                return res.redirect('/login');
+            }
+
+            // md5 for password
+            var md5 = crypto.createHash('md5'),
+                md5password = md5.update(password).digest('hex');
+
+            if(user.password !== md5password) {
+                console.log('Wrong password！');
+                return res.redirect('/login');
+            }
+
+            console.log('Login successfully！');
+
+            user.password = null;
+            delete user.password;
+            req.session.user = user;
+
+            return res.redirect('/');
+        });
+    });
 
 app.get('/quit', function(req, res) {
     req.session.user = null;
-    console.log('退出成功！');
+    console.log('Login out successfully！');
+
     return res.redirect('/login');
 });
 
-app.get('/post', function(req, res) {
-    res.render('post', {
-        title: '发布',
-        user: req.session.user
+app.route('/post')
+    .get(function(req, res) {
+        res.render('post', {
+            title: 'Post',
+            user: req.session.user
+        })
     })
-});
+    .post(function(req, res) {
 
-app.post('/post', function(req, res) {
-    var data = new Article({
-		title: req.body.title,
-		author: req.session.user.username,
-		tag: req.body.tag,
-		content: req.body.content
-	});
+        var data = new Article({
+            title: req.body.title,
+            author: req.session.user.username,
+            tag: req.body.tag,
+            content: req.body.content
+	    });
 
-	data.save(function(err, doc) {
-		if(err) {
-		console.log(err);
-			return res.redirect('/post');
-		}
-		console.log('文章发表成功！')
-		return res.redirect('/');
-	});
-});
+        data.save(function(err, doc) {
+            if(err) {
+                console.log(err);
+                return res.redirect('/post');
+            }
+
+            console.log('Post successfully！');
+
+            return res.redirect('/');
+        });
+    });
 
 app.get('/detail/:_id', function(req, res) {
     Article.findOne({_id: req.params._id})
@@ -194,7 +204,7 @@ app.get('/detail/:_id', function(req, res) {
             }
             if(art) {
                 res.render('detail', {
-                    title: '笔记详情',
+                    title: 'Post Content',
                     user: req.session.user,
                     art: art,
                     moment: moment
